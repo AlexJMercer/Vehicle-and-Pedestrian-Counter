@@ -1,8 +1,7 @@
 numpy
 opencv-python
-ultralytics
+ultralytics==8.2.75
 scikit-image
 matplotlib
 filterpy
 supervision
-torch
