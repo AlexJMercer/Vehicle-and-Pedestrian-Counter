@@ -1,0 +1,8 @@
+numpy
+opencv-python
+ultralytics
+scikit-image
+matplotlib
+filterpy
+supervision
+torch

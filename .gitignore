@@ -1,0 +1,8 @@
+capstone1/
+
+.vscode/
+
+__pycache__/
+
+yolov8l.pt
+yolov8x.pt
