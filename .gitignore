@@ -1,8 +1,7 @@
-capstone1/
+venv/
 
 .vscode/
 
 __pycache__/
 
-yolov8l.pt
-yolov8x.pt
+*.pt
