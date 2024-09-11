@@ -1,3 +1,5 @@
+from env_var import *
+
 import math
 import time
 
@@ -42,10 +44,23 @@ def startDetection(videoCap, yoloModel, limitsCoords, detectionMask):
         frame_rate=videoCap.get(cv2.CAP_PROP_FPS)
     )
 
-    # Initialize the BoundingBox and Label Annotators with Properties
+    video_info = sv.VideoInfo.from_video_path(video_path=VIDEO_PATH)
+    
+    # Get optimal line thickness depending upon the resolution of the video
+    thickness = sv.calculate_optimal_line_thickness(
+        resolution_wh = video_info.resolution_wh
+    )
+    
+    # Get optimal text scale from video
+    text_scale = sv.calculate_optimal_text_scale(
+        resolution_wh = video_info.resolution_wh
+    )
+
+
+    # Initialize the BoundingBox, Label & Trace Annotators with Properties
     boundingAnnotator = sv.BoxCornerAnnotator(
         color=sv.ColorPalette.from_hex(["#00FF00"]),
-        thickness=1,
+        thickness=thickness,
     )
 
     labelAnnotator = sv.LabelAnnotator(
@@ -60,9 +75,9 @@ def startDetection(videoCap, yoloModel, limitsCoords, detectionMask):
     )
 
     lineAnnotator = sv.LineZoneAnnotator(
-        text_thickness=2,
-        text_scale=0.9,
-        thickness=2
+        text_thickness=thickness,           # Default 2
+        text_scale=text_scale,              # Default 0.9
+        thickness=thickness                 # Default 2
     )
 
 
@@ -150,7 +165,7 @@ def startDetection(videoCap, yoloModel, limitsCoords, detectionMask):
                 text=f'Vehicles Detected: {len(countList)}', 
                 org=(50, 50), 
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX, 
-                fontScale=0.9, 
+                fontScale=text_scale,               # Originally 
                 color=(255, 255, 255), 
                 thickness=2
             )

@@ -2,9 +2,13 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 
+from env_var import *
+
 from masking import *
 from monitorTraffic import startDetection
 from plotGraph import *
+
+
 
 
 '''
@@ -15,7 +19,7 @@ Main function of the program
 if __name__ == '__main__':
     
 # Check video file
-    videoCapture = cv2.VideoCapture('traffic2.mp4')             # Example Video file
+    videoCapture = cv2.VideoCapture(VIDEO_PATH)             # Example Video file
     # videoCapture = cv2.VideoCapture(0)                        # Source: Webcam
 
     

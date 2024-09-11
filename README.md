@@ -40,3 +40,7 @@
 ## LICENSE:
 >
 > This project is licensed under the GNU General Public License Version 3 - see the [LICENSE](./LICENSE) file for details.
+>
+> Additionally, this project uses the YOLOv8 model, which is licensed under the AGPL-3.0 license.
+>
+> Also, this project uses the Supervision library, which is licensed under the MIT license. This makes the Supervision part of the code fully open source and freely usable in your own projects.
