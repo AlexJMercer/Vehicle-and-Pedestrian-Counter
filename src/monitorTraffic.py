@@ -19,6 +19,12 @@ def startDetection(videoCap, yoloModel, limitsCoords, detectionMask):
 
     # This is supposed to contain the IDs (Number Plates) of the vehicles to be tracked
     countList = []
+
+    # List to contains the IDs of the pedestrians
+    pedestrianList = []
+
+    # Add a pedestrian count to the list
+    pedestrianCount = 1
     totalCount = 1
 
     # 2D for recording the crossing of a vehicle with time-stamp
@@ -106,14 +112,22 @@ def startDetection(videoCap, yoloModel, limitsCoords, detectionMask):
 
             labels = []
             for _, _, confidence, class_id, tracker_id, _ in detection:
-                if confidence is not None and yoloModel.model.names[class_id] in classNames:
-                    label = f"ID #{tracker_id} {yoloModel.model.names[class_id]} {math.floor(confidence*100)}%"
 
-                    if tracker_id not in countList:
+                if confidence is not None and yoloModel.model.names[class_id] in classNames:
+                    
+                    label = f"ID #{tracker_id} {yoloModel.model.names[class_id]} {math.floor(confidence*100)}%"
+                    
+                    # Detect and count pedestrians if any
+                    if yoloModel.model.names[class_id] == 'person' and tracker_id not in pedestrianList:
+                        label = f"Pedestrian {pedestrianCount} {math.floor(confidence*100)}%"
+                        pedestrianList.append(tracker_id)
+                        pedestrianCount += 1
+
+                    elif tracker_id not in countList:
                         countList.append(totalCount)
                         totalCount += 1
                     
-                    if (np.any(crossed_in) or np.any(crossed_out)) and tracker_id in countList and tracker_id not in [x[0] for x in vehicleCrossings]:
+                    if (np.any(crossed_in) or np.any(crossed_out)) and yoloModel.model.names[class_id] != "person" and tracker_id in countList and tracker_id not in [x[0] for x in vehicleCrossings]:
                         vehicleCrossings.append((
                             tracker_id, 
                             time.strftime("%H:%M:%S", time.localtime())
@@ -190,7 +204,7 @@ def startDetection(videoCap, yoloModel, limitsCoords, detectionMask):
     cv2.destroyAllWindows()
     cv2.waitKey(1)
     
-    return countList, vehicleCrossings
+    return countList, vehicleCrossings, pedestrianCount
 
 
     # while True:

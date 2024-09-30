@@ -4,3 +4,4 @@ motorbike
 bus
 truck
 vehicle
+person

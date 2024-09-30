@@ -110,13 +110,16 @@ if __name__ == '__main__':
 
 
 # Launch the main detection loop
-    countList, vehicleCrossings = startDetection(videoCapture, yoloModel, limitsCoords, detectionMask)
+    countList, vehicleCrossings, pedestrianCount = startDetection(videoCapture, yoloModel, limitsCoords, detectionMask)
 
     print(f'\n\nTotal Vehicles Detected: { len(countList) }')
     print("List of all Vehicle IDs: ", countList)
+
+    print("\n\nNumber of Pedestrians detected :\n", pedestrianCount)
 
     print("\n\nVehicles that passed with time stamps:\n", vehicleCrossings)
 
 
 # Display a graphical representation of number of vehicles vs time
-    plot_graph_vehicle_count(vehicleCrossings)
+    if vehicleCrossings:
+        plot_graph_vehicle_count(vehicleCrossings)
