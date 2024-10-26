@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     if (input('Load coordinates from file? (y/n): ') == 'y'):
         try:
-            coordinates = np.loadtxt('./info/maskCoords.txt', delimiter=',', dtype=int)
+            coordinates = np.load('./info/maskCoords.npy', allow_pickle=True)
             
             if not coordinates.any():
                 print('Error: No coordinates found in file')
@@ -60,66 +60,67 @@ if __name__ == '__main__':
     else:
         coordinates = get_coordinates(videoCapture)
 
-    if coordinates is not None and len(coordinates) != 4:
-        print('Error: No coordinates selected')
-        exit()
+    # if coordinates is not None:
+    #     print('Error: No coordinates selected')
+    #     exit()
     
     # Save coordinates to file
-    np.savetxt('./info/maskCoords.txt', np.array(coordinates), delimiter=',', fmt='%d')
-    
     print('Coordinates: ', coordinates)
+    
+    np.save('./info/maskCoords.npy', np.array(coordinates))
 
 
 # Select and get coordinates for drawing a line on the screen
-    if (input('Load line coordinates from file? (y/n): ') == 'y'):
-        try:
-            limitsCoords = np.loadtxt('./info/lineCoords.txt', delimiter=',', dtype=int)
+    # if (input('Load line coordinates from file? (y/n): ') == 'y'):
+    #     try:
+    #         limitsCoords = np.loadtxt('./info/lineCoords.txt', delimiter=',', dtype=int)
             
-            if not limitsCoords.any():
-                print('Error: No coordinates found in file')
-                print('Gathering new coordinates from Video Capture')
-                limitsCoords = set_counter_line_coordinates(videoCapture)
+    #         if not limitsCoords.any():
+    #             print('Error: No coordinates found in file')
+    #             print('Gathering new coordinates from Video Capture')
+    #             limitsCoords = set_counter_line_coordinates(videoCapture)
         
-        except FileNotFoundError:
-            print('Error: File not found')
-            print('Gathering new coordinates from Video Capture')
-            limitsCoords = set_counter_line_coordinates(videoCapture)
+    #     except FileNotFoundError:
+    #         print('Error: File not found')
+    #         print('Gathering new coordinates from Video Capture')
+    #         limitsCoords = set_counter_line_coordinates(videoCapture)
         
-    else:
-        limitsCoords = set_counter_line_coordinates(videoCapture)
+    # else:
+    #     limitsCoords = set_counter_line_coordinates(videoCapture)
 
-    if limitsCoords is None or len(limitsCoords) != 2:
-        print('Error: No coordinates selected')
-        exit()
+    # if limitsCoords is None or len(limitsCoords) != 2:
+    #     print('Error: No coordinates selected')
+    #     exit()
     
-    # Save coordinates to file
-    limitsCoords = np.flip(limitsCoords, axis=0)
-    np.savetxt('./info/lineCoords.txt', limitsCoords, delimiter=',', fmt='%d')
+    # # Save coordinates to file
+    # limitsCoords = np.flip(limitsCoords, axis=0)
+    # np.savetxt('./info/lineCoords.txt', limitsCoords, delimiter=',', fmt='%d')
     
-    print('Line Coordinates: ', limitsCoords)
+    # print('Line Coordinates: ', limitsCoords)
 
 
 # Now we create the mask using the coordinates obtained
-    detectionMask = create_mask(videoCapture)
+    # detectionMask = create_mask(videoCapture)
     
-    if detectionMask is None or not detectionMask.any():
-        print('Error: Mask not created')
-        exit()
+    # if detectionMask is None or not detectionMask.any():
+    #     print('Error: Mask not created')
+    #     exit()
 
-    print('Mask created')
+    # print('Mask created')
 
 
 # Launch the main detection loop
-    countList, vehicleCrossings, pedestrianCount = startDetection(videoCapture, yoloModel, limitsCoords, detectionMask)
+    # countList, vehicleCrossings, pedestrianCount = startDetection(videoCapture, yoloModel, coordinates)
+    startDetection(videoCapture, yoloModel, coordinates)
 
-    print(f'\n\nTotal Vehicles Detected: { len(countList) }')
-    print("List of all Vehicle IDs: ", countList)
+#     print(f'\n\nTotal Vehicles Detected: { len(countList) }')
+#     print("List of all Vehicle IDs: ", countList)
 
-    print("\n\nNumber of Pedestrians detected :\n", pedestrianCount)
+#     print("\n\nNumber of Pedestrians detected :\n", pedestrianCount)
 
-    print("\n\nVehicles that passed with time stamps:\n", vehicleCrossings)
+#     print("\n\nVehicles that passed with time stamps:\n", vehicleCrossings)
 
 
-# Display a graphical representation of number of vehicles vs time
-    if vehicleCrossings:
-        plot_graph_vehicle_count(vehicleCrossings)
+# # Display a graphical representation of number of vehicles vs time
+#     if vehicleCrossings:
+#         plot_graph_vehicle_count(vehicleCrossings)

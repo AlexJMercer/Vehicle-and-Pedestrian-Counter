@@ -3,15 +3,16 @@ import numpy as np
 
 
 def get_coordinates(video_capture):
-    """Gets a list of 4 coordinate values from the video capture screen.
+    """Gets a list of coordinate values for multiple zones from the video capture screen.
 
     Args:
         video_capture: OpenCV video capture object.
 
     Returns:
-        A list of four tuples containing (x, y) coordinates, or None if the user exits before selecting 4 points.
+        A list of numpy arrays, each containing four tuples with (x, y) coordinates for each zone.
     """
 
+    all_coordinates = []
     coordinates = []
 
     def mouse_callback(event, x, y, flags, param):
@@ -19,32 +20,41 @@ def get_coordinates(video_capture):
             coordinates.append((x, y))
             print('Coordinates: ', coordinates)
 
-    cv2.namedWindow('Select 4 points')
-    cv2.setMouseCallback('Select 4 points', mouse_callback)
+    num_zones = int(input("Enter the number of zones: "))
 
-    while True:
-        ret, frame = video_capture.read()
-        if not ret:
-            break
+    for zone in range(num_zones):
+        coordinates = []
+        cv2.namedWindow(f'Select 4 points for Zone {zone + 1}')
+        cv2.setMouseCallback(f'Select 4 points for Zone {zone + 1}', mouse_callback)
 
-        if len(coordinates) == 4:
-            break
+        while True:
+            ret, frame = video_capture.read()
+            if not ret:
+                break
 
-        # Display selected points (optional)
-        for point in coordinates:
-            cv2.circle(frame, point, 3, (5, 250, 50), -1)
+            if len(coordinates) == 4:
+                break
 
-        cv2.imshow('Select 4 points', frame)
+            # Display selected points (optional)
+            for point in coordinates:
+                cv2.circle(frame, point, 3, (5, 250, 50), -1)
 
-        if cv2.waitKey(80) & 0xFF == ord('q'):
-            break
+            cv2.imshow(f'Select 4 points for Zone {zone + 1}', frame)
 
-    cv2.destroyAllWindows()
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-    if len(coordinates) != 4:
-        return None
 
-    return coordinates
+
+        cv2.destroyAllWindows()
+
+        if len(coordinates) != 4:
+            print(f"Zone {zone + 1} was not properly selected. Exiting.")
+            return None
+
+        all_coordinates.append(np.array(coordinates))
+
+    return all_coordinates
 
 
 

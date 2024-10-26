@@ -44,3 +44,34 @@ def returnCameraIndexes():
 
 # Display current time in hours, minutes, seconds
 # print(time.strftime("%H:%M:%S", time.localtime()))
+
+
+
+polygons = [
+    np.array([
+        [0, 0],
+        [1080 - 5, 0],
+        [1080 - 5, 1300 - 5],
+        [0, 1300 - 5]
+    ], np.int32),
+    np.array([
+        [1080 + 5, 0],
+        [2160, 0],
+        [2160, 1300 - 5],
+        [1080 + 5, 1300 - 5]
+    ], np.int32),
+    np.array([
+        [0, 1300 + 5],
+        [1080 - 5, 1300 + 5],
+        [1080 - 5, 3840],
+        [0, 3840]
+    ], np.int32),
+    np.array([
+        [1080 + 5, 1300 + 5],
+        [2160, 1300 + 5],
+        [2160, 3840],
+        [1080 + 5, 3840]
+    ], np.int32)
+]
+
+print(polygons)
