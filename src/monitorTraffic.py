@@ -247,20 +247,12 @@ def startDetection(videoCap, model, polygons):
 
     colors = sv.ColorPalette.DEFAULT
 
-    # Get optimal line thickness depending upon the resolution of the video
-    thickness = sv.calculate_optimal_line_thickness(
-        resolution_wh = video_info.resolution_wh
-    )
-    
-    # Get optimal text scale from video
-    text_scale = sv.calculate_optimal_text_scale(
-        resolution_wh = video_info.resolution_wh
-    )
+    selected_classes = [0, 1, 2, 3, 5, 7]
+
 
     zones = [
         sv.PolygonZone(
             polygon=polygon,
-            frame_resolution_wh=video_info.resolution_wh
         )
         for polygon
         in polygons
@@ -270,9 +262,6 @@ def startDetection(videoCap, model, polygons):
         sv.PolygonZoneAnnotator(
             zone=zone,
             color=colors.by_idx(index),
-            thickness=thickness,
-            text_thickness=thickness,
-            text_scale=text_scale
         )
         for index, zone
         in enumerate(zones)
@@ -282,7 +271,6 @@ def startDetection(videoCap, model, polygons):
     box_annotators = [
         sv.BoxCornerAnnotator(
             color=colors.by_idx(index),
-            thickness=thickness,
             )
         for index
         in range(len(polygons))
@@ -296,8 +284,8 @@ def startDetection(videoCap, model, polygons):
 
         results = model(
             frame,
-            imgsz=1280,
-            verbose=True
+            imgsz=736,
+            verbose=False
         )
 
         for result in results:
@@ -305,7 +293,7 @@ def startDetection(videoCap, model, polygons):
 
             for zone, zone_annotator, box_annotator in zip(zones, zone_annotators, box_annotators):
                 mask = zone.trigger(detections)
-                detections_filtered = detections[mask]
+                detections_filtered = detections[mask & (detections.confidence > 0.5) & np.isin(detections.class_id, selected_classes)]
 
                 frame = zone_annotator.annotate(
                     scene=frame,
@@ -316,9 +304,9 @@ def startDetection(videoCap, model, polygons):
                     detections=detections_filtered
                 )
 
-        cv2.imshow('Output View', frame)
+            cv2.imshow('Output View', frame)
 
-        if cv2.waitKey(0) & 0xFF == ord('q'):
+        if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
     videoCap.release()

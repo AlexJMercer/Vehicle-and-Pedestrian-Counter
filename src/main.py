@@ -28,7 +28,7 @@ if __name__ == '__main__':
         exit()
 
 # Load YOLOv8 model
-    yoloModel = YOLO('yolov8l.pt')
+    yoloModel = YOLO('yolov8n.pt')
 
     if not yoloModel.model:
         print('Error: Model not found')
