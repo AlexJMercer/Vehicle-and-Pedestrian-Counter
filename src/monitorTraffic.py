@@ -243,12 +243,9 @@ import supervision as sv
 
 def startDetection(videoCap, model, polygons):
 
-    video_info = sv.VideoInfo.from_video_path(video_path=VIDEO_PATH)
-
     colors = sv.ColorPalette.DEFAULT
 
     selected_classes = [0, 1, 2, 3, 5, 7]
-
 
     zones = [
         sv.PolygonZone(
@@ -267,14 +264,18 @@ def startDetection(videoCap, model, polygons):
         in enumerate(zones)
     ]
 
-
     box_annotators = [
         sv.BoxCornerAnnotator(
             color=colors.by_idx(index),
-            )
+        )
         for index
         in range(len(polygons))
     ]
+
+    label_annotator = sv.LabelAnnotator(
+            text_padding=2,
+            text_position=sv.Position.TOP_LEFT
+        )
 
     while True:
         ret, frame = videoCap.read()
@@ -285,7 +286,7 @@ def startDetection(videoCap, model, polygons):
         results = model(
             frame,
             imgsz=736,
-            verbose=False
+            verbose=True
         )
 
         for result in results:
@@ -294,6 +295,11 @@ def startDetection(videoCap, model, polygons):
             for zone, zone_annotator, box_annotator in zip(zones, zone_annotators, box_annotators):
                 mask = zone.trigger(detections)
                 detections_filtered = detections[mask & (detections.confidence > 0.5) & np.isin(detections.class_id, selected_classes)]
+
+                labels = [
+                    f"{model.model.names[class_id]} {math.floor(conf * 100)}%"
+                    for _, _, conf, class_id, _, _ in detections_filtered
+                ]
 
                 frame = zone_annotator.annotate(
                     scene=frame,
@@ -304,9 +310,15 @@ def startDetection(videoCap, model, polygons):
                     detections=detections_filtered
                 )
 
+                frame = label_annotator.annotate(
+                    scene=frame,
+                    detections=detections_filtered,
+                    labels=labels
+                )
+
             cv2.imshow('Output View', frame)
 
-        if cv2.waitKey(10) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):  # Use waitKey(1) for real-time video / camera feed
             break
 
     videoCap.release()
