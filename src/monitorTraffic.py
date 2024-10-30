@@ -286,7 +286,7 @@ def startDetection(videoCap, model, polygons):
         results = model(
             frame,
             imgsz=736,
-            verbose=True
+            verbose=False
         )
 
         for result in results:
@@ -316,7 +316,7 @@ def startDetection(videoCap, model, polygons):
                     labels=labels
                 )
 
-            cv2.imshow('Output View', frame)
+        cv2.imshow('Output View', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):  # Use waitKey(1) for real-time video / camera feed
             break

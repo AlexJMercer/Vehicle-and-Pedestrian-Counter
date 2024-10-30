@@ -22,29 +22,30 @@ def get_coordinates(video_capture):
 
     num_zones = int(input("Enter the number of zones: "))
 
+    ret, frame = video_capture.read()
+    if not ret:
+        print('Error: Frame not found')
+        return None
+
     for zone in range(num_zones):
         coordinates = []
         cv2.namedWindow(f'Select 4 points for Zone {zone + 1}')
         cv2.setMouseCallback(f'Select 4 points for Zone {zone + 1}', mouse_callback)
 
         while True:
-            ret, frame = video_capture.read()
-            if not ret:
-                break
+            display_frame = frame.copy()
 
             if len(coordinates) == 4:
                 break
 
             # Display selected points (optional)
             for point in coordinates:
-                cv2.circle(frame, point, 3, (5, 250, 50), -1)
+                cv2.circle(display_frame, point, 3, (5, 250, 50), -1)
 
-            cv2.imshow(f'Select 4 points for Zone {zone + 1}', frame)
+            cv2.imshow(f'Select 4 points for Zone {zone + 1}', display_frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
-
 
         cv2.destroyAllWindows()
 
