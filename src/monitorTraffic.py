@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 
 import supervision as sv
+import os
 
 # from sort import *
 
@@ -237,7 +238,43 @@ import supervision as sv
 #     return countList, vehicleCrossings, pedestrianCount
 
     # ==========================================================================
+
+
+def assign_zone_labels(zones):
+    zone_labels = {}
+
+    # Check if the file exists
+    if os.path.exists('./info/zoneLabels.txt'):
+        # Load data with np.loadtxt if file exists
+        try:
+            loaded_labels = np.loadtxt('./info/zoneLabels.txt', dtype=str, delimiter=',')
+            
+            # Ensure loaded_labels is not empty
+            if loaded_labels.size == 0:
+                raise ValueError("Empty label file.")
+
+            # Map zones to labels from the file
+            for i, zone in enumerate(zones):
+                zone_labels[zone] = loaded_labels[i] if i < len(loaded_labels) else f"Zone_{i}"
+        
+        except Exception as e:
+            print(f'Error loading labels from file: {e}')
+            print('Gathering new zone labels')
+            
+            # Prompt for input if there was an issue loading from file
+            for i, zone in enumerate(zones):
+                label = input(f"Enter label for zone {i}: ")
+                zone_labels[zone] = label
     
+    else:
+        print('File not found or empty. Gathering new zone labels.')
+        
+        # Prompt for input if the file doesn’t exist
+        for i, zone in enumerate(zones):
+            label = input(f"Enter label for zone {i}: ")
+            zone_labels[zone] = label
+
+    return zone_labels
 
 
 
@@ -245,7 +282,14 @@ def startDetection(videoCap, model, polygons):
 
     colors = sv.ColorPalette.DEFAULT
 
+    # 0 - person
+    # 1 - bicycle
+    # 2 - car
+    # 3 - motorcycle
+    # 5 - bus
+    # 7 - truck
     selected_classes = [0, 1, 2, 3, 5, 7]
+
 
     zones = [
         sv.PolygonZone(
@@ -254,6 +298,10 @@ def startDetection(videoCap, model, polygons):
         for polygon
         in polygons
     ]
+
+
+    zone_labels = assign_zone_labels(zones)
+
 
     zone_annotators = [
         sv.PolygonZoneAnnotator(
@@ -273,9 +321,9 @@ def startDetection(videoCap, model, polygons):
     ]
 
     label_annotator = sv.LabelAnnotator(
-            text_padding=2,
-            text_position=sv.Position.TOP_LEFT
-        )
+        text_padding=2,
+        text_position=sv.Position.TOP_LEFT
+    )
 
     while True:
         ret, frame = videoCap.read()
@@ -285,7 +333,7 @@ def startDetection(videoCap, model, polygons):
 
         results = model(
             frame,
-            imgsz=736,
+            imgsz=640,
             verbose=False
         )
 
@@ -316,6 +364,32 @@ def startDetection(videoCap, model, polygons):
                     labels=labels
                 )
 
+
+                zone_text = f"{zone_labels[zone]} zone"
+
+                # Place label on top of the zone in the video frame
+                top_left = zone.polygon[0]  # Get the top-left corner of the zone box
+                cv2.putText(
+                    frame,
+                    zone_text,
+                    (int(top_left[0]), int(top_left[1]) - 10),  # Adjust position above the top-left corner
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.9,                                        # Font scale
+                    (255, 255, 255),                            # White color for text
+                    2,                                          # Thickness
+                    cv2.LINE_AA
+                )
+
+                # Print the name of the zone and the number of detections in console
+                print(f"{zone_labels[zone]} Zone: {zone.current_count} detections")
+
+            print()
+
+        # Compare the number of pedestrians and vehicles in each zone every 200 frames
+        if videoCap.get(cv2.CAP_PROP_POS_FRAMES) % 200 == 0:
+            evaluate_traffic_conditions(videoCap, zones, zone_labels)
+
+
         cv2.imshow('Output View', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):  # Use waitKey(1) for real-time video / camera feed
@@ -323,3 +397,35 @@ def startDetection(videoCap, model, polygons):
 
     videoCap.release()
     cv2.destroyAllWindows()
+
+
+
+def evaluate_traffic_conditions(videoCap, zones, zone_labels):
+        # If total of zone 1 and zone 2 is less than total of zone 3, print a message
+        
+        # If the number of vehicles on road is very less, and pedestrians are more,
+        # let the pedestrian pass first
+        
+        # Calculate total number of detections in zones whose labels are not 'Pedestrian'
+        vehicle_count = sum(
+                    zone.current_count
+                    for zone in zones
+                    if zone_labels[zone] != "Pedestrian"
+                )
+
+        pedestrian_count = sum(
+                    zone.current_count
+                    for zone in zones
+                    if zone_labels[zone] == "Pedestrian"
+                )
+        
+        # Since pedestrians will always be more, let's add a offset value to the vehicle count
+
+        if (vehicle_count + 5) < pedestrian_count:
+            print("Pedestrians have right of way. Let pedestrians pass...")
+            print("Traffic Signal: RED")
+            time.sleep(5)
+        else:
+            print("Vehicles have right of way. Proceed with caution...")
+            print("Traffic Signal: GREEN")
+            
