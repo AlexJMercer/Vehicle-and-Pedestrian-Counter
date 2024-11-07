@@ -1,5 +1,3 @@
-from env_var import *
-
 import math
 import time
 
@@ -240,36 +238,42 @@ import os
     # ==========================================================================
 
 
-def assign_zone_labels(zones):
+def assign_zone_labels(zones, loadLabels):
     zone_labels = {}
 
-    # Check if the file exists
-    if os.path.exists('./info/zoneLabels.txt'):
-        # Load data with np.loadtxt if file exists
-        try:
-            loaded_labels = np.loadtxt('./info/zoneLabels.txt', dtype=str, delimiter=',')
-            
-            # Ensure loaded_labels is not empty
-            if loaded_labels.size == 0:
-                raise ValueError("Empty label file.")
+    if loadLabels:
+        # Check if the file exists
+        if os.path.exists('./info/zoneLabels.txt'):
+            # Load data with np.loadtxt if file exists
+            try:
+                loaded_labels = np.loadtxt('./info/zoneLabels.txt', dtype=str, delimiter=',')
+                
+                # Ensure loaded_labels is not empty
+                if loaded_labels.size == 0:
+                    raise ValueError("Empty label file.")
 
-            # Map zones to labels from the file
-            for i, zone in enumerate(zones):
-                zone_labels[zone] = loaded_labels[i] if i < len(loaded_labels) else f"Zone_{i}"
-        
-        except Exception as e:
-            print(f'Error loading labels from file: {e}')
-            print('Gathering new zone labels')
+                # Map zones to labels from the file
+                for i, zone in enumerate(zones):
+                    zone_labels[zone] = loaded_labels[i] if i < len(loaded_labels) else f"Zone_{i}"
             
-            # Prompt for input if there was an issue loading from file
+            except Exception as e:
+                print(f'Error loading labels from file: {e}')
+                print('Gathering new zone labels')
+                
+                # Prompt for input if there was an issue loading from file
+                for i, zone in enumerate(zones):
+                    label = input(f"Enter label for zone {i}: ")
+                    zone_labels[zone] = label
+        
+        else:
+            print('File not found or empty. Gathering new zone labels.')
+            
+            # Prompt for input if the file doesn’t exist
             for i, zone in enumerate(zones):
                 label = input(f"Enter label for zone {i}: ")
                 zone_labels[zone] = label
-    
     else:
-        print('File not found or empty. Gathering new zone labels.')
-        
-        # Prompt for input if the file doesn’t exist
+        # Prompt for input if loadLabels is False
         for i, zone in enumerate(zones):
             label = input(f"Enter label for zone {i}: ")
             zone_labels[zone] = label
@@ -278,7 +282,7 @@ def assign_zone_labels(zones):
 
 
 
-def startDetection(videoCap, model, polygons):
+def startDetection(videoCap, model, polygons, loadLabels):
 
     colors = sv.ColorPalette.DEFAULT
 
@@ -300,7 +304,7 @@ def startDetection(videoCap, model, polygons):
     ]
 
 
-    zone_labels = assign_zone_labels(zones)
+    zone_labels = assign_zone_labels(zones, loadLabels)
 
 
     zone_annotators = [
@@ -387,7 +391,7 @@ def startDetection(videoCap, model, polygons):
 
         # Compare the number of pedestrians and vehicles in each zone every 200 frames
         if videoCap.get(cv2.CAP_PROP_POS_FRAMES) % 200 == 0:
-            evaluate_traffic_conditions(videoCap, zones, zone_labels)
+            evaluate_traffic_conditions(zones, zone_labels)
 
 
         cv2.imshow('Output View', frame)
@@ -400,7 +404,7 @@ def startDetection(videoCap, model, polygons):
 
 
 
-def evaluate_traffic_conditions(videoCap, zones, zone_labels):
+def evaluate_traffic_conditions(zones, zone_labels):
         # If total of zone 1 and zone 2 is less than total of zone 3, print a message
         
         # If the number of vehicles on road is very less, and pedestrians are more,

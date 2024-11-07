@@ -2,13 +2,11 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 
-from env_var import *
-
 from masking import *
 from monitorTraffic import *
 from plotGraph import *
 
-
+from buildGUI import *
 
 
 '''
@@ -127,21 +125,34 @@ Main function of the program
 
 
 
-
-
 if __name__ == '__main__':
-    
-    # Check video file
-    videoCapture = cv2.VideoCapture(VIDEO_PATH)             # Example Video file
-    # videoCapture = cv2.VideoCapture(0)                        # Source: Webcam
 
+    root = tk.Tk()
+    app = BuildGUI(root)
+    root.mainloop()
     
+    video_path, model_path, load_coords, load_labels = app.get_values()
+    
+    # Print or process the values
+    print("Video Path:", video_path)
+    print("YOLO Model Path:", model_path)
+    print("Load Coordinates:", load_coords)
+    print("Load Labels:", load_labels)
+    print()
+
+    # Check video file
+    if video_path is int:
+        videoCapture = cv2.VideoCapture(video_path)                        # Source: Webcam
+    else:
+        videoCapture = cv2.VideoCapture(str(video_path))             # Example Video file
+
     if not videoCapture.isOpened():
         print('Error: Video file not found')
         exit()
 
+    
     # Load YOLOv8 model
-    yoloModel = YOLO('yolov8n.pt')
+    yoloModel = YOLO(str(model_path))
 
     if not yoloModel.model:
         print('Error: Model not found')
@@ -151,9 +162,7 @@ if __name__ == '__main__':
     coordinates = []
     limitsCoords = []
 
-
-
-    if (input('Load coordinates from file? (y/n): ') == 'y'):
+    if load_coords:
         try:
             coordinates = np.load('./info/maskCoords.npy', allow_pickle=True)
             
@@ -180,4 +189,4 @@ if __name__ == '__main__':
     
     np.save('./info/maskCoords.npy', np.array(coordinates))
 
-    startDetection(videoCapture, yoloModel, coordinates)
+    startDetection(videoCapture, yoloModel, coordinates, load_labels)
