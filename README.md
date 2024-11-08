@@ -1,7 +1,5 @@
-<h1 align="center">Vehicle and Pedestrian Tracker</h1>
+<h1 align="center">Traffic Control with Vehicle and Pedestrian Tracker</h1>
 
-![working model](imgs/image.png)
-<h4 align="center">Counting and Numbering Vehicles as they pass.</h4>
 
 ## About the Project:
 > This project is a part of my Final Year Project at University, <br>
@@ -10,8 +8,21 @@
 
 > This portion of the project is a real-time vehicle and pedestrian <br>
 > tracker that uses advanced computer vision techniques to count and <br>
-> track vehicles and pedestrians in a specific area.
+> track vehicles and pedestrians in a specific zone/area.
+> It then compares the realtime count of Vehicles and Pedestrians on the road and decides whether to change the traffic light or not.
 
+
+## How it Works:
+
+<div align="center">
+
+| Feature | Description |
+|---------|-------------|
+| ![GUI](imgs/image1.png) | GUI provided to input one-time details necessary to run the detection model. Enter a Video Path or your Webcam |
+| ![Select Points](imgs/image2.png) | Select points for creating your zones. |
+| ![Output](imgs/image3.png) | Output Window, displaying in RealTime |
+
+</div>
 
 
 ## What does it accomplish?
