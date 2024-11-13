@@ -127,10 +127,12 @@ Main function of the program
 
 if __name__ == '__main__':
 
+    # Create GUI
     root = tk.Tk()
     app = BuildGUI(root)
     root.mainloop()
     
+    # Get values from GUI
     video_path, model_path, load_coords, load_labels = app.get_values()
     
     # Print or process the values
@@ -159,9 +161,10 @@ if __name__ == '__main__':
         exit()
 
 
+    # Arrays to store Coordinates
     coordinates = []
-    limitsCoords = []
 
+    # Check if coordinates are to be loaded from file
     if load_coords:
         try:
             coordinates = np.load('./info/maskCoords.npy', allow_pickle=True)
@@ -184,9 +187,12 @@ if __name__ == '__main__':
     #     exit()
     
     # Save coordinates to file
-    print('Coordinates: ', coordinates)
+    print('Coordinates:\n', coordinates)
     print()
     
+    # Save coordinates to file
     np.save('./info/maskCoords.npy', np.array(coordinates))
 
+
+    # Start the main detection loop
     startDetection(videoCapture, yoloModel, coordinates, load_labels)

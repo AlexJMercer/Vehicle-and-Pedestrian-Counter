@@ -424,12 +424,16 @@ def evaluate_traffic_conditions(zones, zone_labels):
                 )
         
         # Since pedestrians will always be more, let's add a offset value to the vehicle count
-
         if (vehicle_count + 5) < pedestrian_count:
+            # Let pedestrians pass first and stop vehicles
             print("Pedestrians have right of way. Let pedestrians pass...")
+            # Replace this line with a function to control the traffic signal
             print("Traffic Signal: RED")
             time.sleep(5)
+        
         else:
+            # Let vehicles pass and stop pedestrians
             print("Vehicles have right of way. Proceed with caution...")
+            # Replace this line with a function to control the traffic signal
             print("Traffic Signal: GREEN")
             
