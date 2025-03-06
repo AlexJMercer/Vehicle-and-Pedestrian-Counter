@@ -294,7 +294,6 @@ def startDetection(videoCap, model, polygons, loadLabels):
     # 7 - truck
     selected_classes = [0, 1, 2, 3, 5, 7]
 
-
     zones = [
         sv.PolygonZone(
             polygon=polygon,
@@ -303,9 +302,7 @@ def startDetection(videoCap, model, polygons, loadLabels):
         in polygons
     ]
 
-
     zone_labels = assign_zone_labels(zones, loadLabels)
-
 
     zone_annotators = [
         sv.PolygonZoneAnnotator(
@@ -328,6 +325,10 @@ def startDetection(videoCap, model, polygons, loadLabels):
         text_padding=2,
         text_position=sv.Position.TOP_LEFT
     )
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter('output1.avi', fourcc, int(videoCap.get(cv2.CAP_PROP_FPS)), (int(videoCap.get(3)), int(videoCap.get(4))))
 
     while True:
         ret, frame = videoCap.read()
@@ -368,7 +369,6 @@ def startDetection(videoCap, model, polygons, loadLabels):
                     labels=labels
                 )
 
-
                 zone_text = f"{zone_labels[zone]} zone"
 
                 # Place label on top of the zone in the video frame
@@ -384,56 +384,76 @@ def startDetection(videoCap, model, polygons, loadLabels):
                     cv2.LINE_AA
                 )
 
-                # Print the name of the zone and the number of detections in console
-                print(f"{zone_labels[zone]} Zone: {zone.current_count} detections")
+                # IF you want to print the number of detections in each zone
+                # print(f"{zone_text}: {len(detections_filtered)}")
 
-            print()
+            # print()
 
         # Compare the number of pedestrians and vehicles in each zone every 200 frames
         if videoCap.get(cv2.CAP_PROP_POS_FRAMES) % 200 == 0:
-            evaluate_traffic_conditions(zones, zone_labels)
+            evaluate_traffic_conditions(zones, zone_labels, frame)
 
-
-        cv2.imshow('Output View', frame)
+        # Write the frame to the output video file
+        # Uncomment the line below to display the video feed in a window as well
+        # cv2.imshow('Output Window', frame)
+        out.write(frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):  # Use waitKey(1) for real-time video / camera feed
             break
 
     videoCap.release()
+    out.release()
     cv2.destroyAllWindows()
 
 
 
-def evaluate_traffic_conditions(zones, zone_labels):
-        # If total of zone 1 and zone 2 is less than total of zone 3, print a message
-        
-        # If the number of vehicles on road is very less, and pedestrians are more,
-        # let the pedestrian pass first
-        
-        # Calculate total number of detections in zones whose labels are not 'Pedestrian'
-        vehicle_count = sum(
-                    zone.current_count
-                    for zone in zones
-                    if zone_labels[zone] != "Pedestrian"
-                )
+def evaluate_traffic_conditions(zones, zone_labels, frame):
+    # Calculate total number of detections in zones whose labels are not 'Pedestrian'
+    vehicle_count = sum(
+        zone.current_count
+        for zone in zones
+        if zone_labels[zone] != "Pedestrian"
+    )
 
-        pedestrian_count = sum(
-                    zone.current_count
-                    for zone in zones
-                    if zone_labels[zone] == "Pedestrian"
-                )
-        
-        # Since pedestrians will always be more, let's add a offset value to the vehicle count
-        if (vehicle_count + 5) < pedestrian_count:
-            # Let pedestrians pass first and stop vehicles
-            print("Pedestrians have right of way. Let pedestrians pass...")
-            # Replace this line with a function to control the traffic signal
-            print("Traffic Signal: RED")
-            time.sleep(5)
-        
-        else:
-            # Let vehicles pass and stop pedestrians
-            print("Vehicles have right of way. Proceed with caution...")
-            # Replace this line with a function to control the traffic signal
-            print("Traffic Signal: GREEN")
-            
+    pedestrian_count = sum(
+        zone.current_count
+        for zone in zones
+        if zone_labels[zone] == "Pedestrian"
+    )
+
+    message = ""
+    # Since pedestrians will always be more, let's add an offset value to the vehicle count
+    if (vehicle_count + 5) < pedestrian_count:
+        # Let pedestrians pass first and stop vehicles
+        message = "Pedestrians have right of way. Let pedestrians pass..."
+        # Replace this line with a function to control the traffic signal
+        traffic_signal = "Traffic Signal: RED"
+        time.sleep(5)
+    else:
+        # Let vehicles pass and stop pedestrians
+        message = "Vehicles have right of way. Proceed with caution..."
+        # Replace this line with a function to control the traffic signal
+        traffic_signal = "Traffic Signal: GREEN"
+
+    # Display the message on the top left corner of the video frame
+    cv2.putText(
+        frame,
+        message,
+        (10, 30),  # Position (x, y)
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,  # Font scale
+        (255, 255, 255),  # White color for text
+        2,  # Thickness
+        cv2.LINE_AA
+    )
+
+    cv2.putText(
+        frame,
+        traffic_signal,
+        (10, 60),  # Position (x, y)
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,  # Font scale
+        (255, 255, 255),  # White color for text
+        2,  # Thickness
+        cv2.LINE_AA
+    )
